@@ -87,3 +87,46 @@ test['Loan_Status'] = 1 # create a basic model with all approved loan statuses
 test.loc[test['Loan_Status'] == 1,'Loan_Status'] = 'Y'
 test.loc[test['Loan_Status'] == 0,'Loan_Status'] = 'N'
 test[['Loan_ID','Loan_Status']].to_csv(r'C:\Users\Firoz Jaipuri\Downloads\AV_DataSets\LoanPrediction\SampleSubmission.csv')
+#EDA with categorical variables 
+train.info()
+train.describe()
+sns.countplot(x='Loan_Status',data=train)
+sns.factorplot(x='Loan_Status', col='Gender', kind='count', data=train) #TakeAway - More men applied for loan than women. Approval seems Gender agnostic. 
+train.groupby(['Gender']).Loan_Status.sum() #No. of men and women who got approved
+print(train[train.Gender == 0].Loan_Status.sum()/train[train.Gender == 0].Loan_Status.count()) #Approval rate for men
+print(train[train.Gender == 1].Loan_Status.sum()/train[train.Gender == 1].Loan_Status.count()) #Approval rate for women
+
+sns.factorplot(x='Loan_Status',col='Education',kind='count',data=train)
+print("Approval Rate based on Education")
+print(train[train.Education == 0].Loan_Status.sum()/train[train.Education == 0].Loan_Status.count()) #Approval rate for NoGraduate
+print(train[train.Education == 1].Loan_Status.sum()/train[train.Education == 1].Loan_Status.count()) #Approval rate for Graduate
+
+sns.factorplot(x='Loan_Status',col='Married',kind='count',data=train)
+print("Approval Rate for Married")
+print(train[train.Married == 0].Loan_Status.sum()/train[train.Married == 0].Loan_Status.count()) #Approval rate for Unmarried
+print(train[train.Married == 1].Loan_Status.sum()/train[train.Married == 1].Loan_Status.count()) #Approval rate for Married
+
+sns.factorplot(x='Loan_Status',col='Self_Employed',kind='count',data=train)
+print("Approval Rate for Self_Employed")
+print(train[train.Self_Employed == 0].Loan_Status.sum()/train[train.Self_Employed == 0].Loan_Status.count()) #Approval rate for Unmarried
+print(train[train.Self_Employed == 1].Loan_Status.sum()/train[train.Self_Employed == 1].Loan_Status.count()) #Approval rate for Married
+
+sns.factorplot(x='Loan_Status',col='Credit_History',kind='count',data=train)
+print("Approval Rate for Credit_History")
+print(train[train.Credit_History == 0].Loan_Status.sum()/train[train.Credit_History == 0].Loan_Status.count()) #Approval rate for Unmarried
+print(train[train.Credit_History == 1].Loan_Status.sum()/train[train.Credit_History == 1].Loan_Status.count()) #Approval rate for Married
+
+
+#EDA with numeric variables 
+sns.distplot(train.ApplicantIncome, kde=False);
+print(train.ApplicantIncome.mean())
+print(train.ApplicantIncome.max())
+print(train.ApplicantIncome.min())
+train.groupby('Loan_Status').ApplicantIncome.hist(alpha=0.6);
+
+
+test['Loan_Status'] = test.Credit_History == 1 #Credit History seems like a very good indicator of whether loan will be approved or not.
+test.loc[test['Loan_Status'] == 1,'Loan_Status'] = 'Y'
+test.loc[test['Loan_Status'] == 0,'Loan_Status'] = 'N'
+test[['Loan_ID','Loan_Status']].to_csv(r'C:\Users\Firoz Jaipuri\Downloads\AV_DataSets\LoanPrediction\SampleSubmission.csv')
+
