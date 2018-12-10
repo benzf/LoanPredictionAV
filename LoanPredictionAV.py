@@ -124,9 +124,69 @@ print(train.ApplicantIncome.max())
 print(train.ApplicantIncome.min())
 train.groupby('Loan_Status').ApplicantIncome.hist(alpha=0.6);
 
+#########################################################################################################
+######################################## IMPUTATION ##################################################### 
+train['Married'].fillna(1, inplace = True)
+train['Gender'].fillna(0,inplace=True)
+train['Self_Employed'].fillna(0, inplace=True)
+train.loc[ (pd.isnull(train['Credit_History'])) & (train['Loan_Status'] == 1), 'Credit_History'] = 1
+train.loc[ (pd.isnull(train['Credit_History'])) & (train['Loan_Status'] == 0), 'Credit_History'] = 0
 
-test['Loan_Status'] = test.Credit_History == 1 #Credit History seems like a very good indicator of whether loan will be approved or not.
-test.loc[test['Loan_Status'] == 1,'Loan_Status'] = 'Y'
-test.loc[test['Loan_Status'] == 0,'Loan_Status'] = 'N'
-test[['Loan_ID','Loan_Status']].to_csv(r'C:\Users\Firoz Jaipuri\Downloads\AV_DataSets\LoanPrediction\SampleSubmission.csv')
+LATMedian = train.Loan_Amount_Term.median()
+train['Loan_Amount_Term'].fillna(LATMedian, inplace = True)
+
+train.loc[ (pd.isnull(train['Dependents'])) & (train['Married'] == 0), 'Dependents'] = 0 #If Unmarried, dependents are 0. 
+train.loc[ (pd.isnull(train['Dependents'])) & (train['Married'] == 1), 'Dependents'] = 0 #If married, dependents are 0 (since thats stillthe highest category). 
+
+LAMean = train.LoanAmount.median()
+train['LoanAmount'].fillna(LAMean,inplace=True)
+
+
+test['Gender'].fillna(0,inplace=True)
+test['Self_Employed'].fillna(0, inplace=True)
+test['Dependents'].fillna(0, inplace=True)
+test['Credit_History'].fillna(0, inplace=True)
+LAMeanTest = test.LoanAmount.median()
+test['LoanAmount'].fillna(LAMeanTest,inplace=True)
+LATMediantest = test.Loan_Amount_Term.median()
+test['Loan_Amount_Term'].fillna(LATMediantest, inplace = True)
+
+# print(train[train.Gender == 0].Loan_Status.sum()/train[train.Gender == 0].Loan_Status.count()) 
+# print(train[train.Gender == 1].Loan_Status.sum()/train[train.Gender == 1].Loan_Status.count()) 
+# sns.factorplot(x='Self_Employed',col='Loan_Status',kind='count',data=train)
+
+####################################################################################################################
+#Train a decision tree classifier with only these followign features as they seem to be most important for the Loan_Status
+
+df_train = train[['Gender', 'Credit_History', 'LoanAmount','ApplicantIncome', 'Self_Employed']]
+df_test = test[['Gender', 'Credit_History', 'LoanAmount','ApplicantIncome', 'Self_Employed']]
+
+####################################################################################################################
+data_train = df_train.iloc[:,:]
+y_train = train.iloc[:,10]
+
+#train.drop(['Loan_Status'],axis=1,inplace=True)
+
+data_test = df_test.iloc[:,:]
+LoanIdTest = test.iloc[:,0]
+
+#print(data_train.head)
+X = data_train.values
+test = data_test.values
+y = y_train.values
+
+clf = tree.DecisionTreeClassifier(max_depth=3)
+clf.fit(X, y)
+
+Y_pred = clf.predict(test)
+
+# Make predictions and store in df_test
+df_result = pd.DataFrame()
+df_result['Loan_ID'] = LoanIdTest
+df_result['Loan_Status'] = Y_pred
+df_result.loc[df_result['Loan_Status'] == 1,'Loan_Status'] = 'Y'
+df_result.loc[df_result['Loan_Status'] == 0,'Loan_Status'] = 'N'
+
+
+df_result[['Loan_ID','Loan_Status']].to_csv(r'C:\Users\Firoz Jaipuri\Downloads\AV_DataSets\LoanPrediction\SampleSubmission.csv')
 
